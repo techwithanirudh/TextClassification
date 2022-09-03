@@ -39,12 +39,19 @@ def upload_file():
 		if file.filename == '':
 			flash('No selected file')
 			return redirect(request.url)
+		if file and not allowed_file(file.filename):
+			flash('Not an allowed file')
+			return redirect(request.url)
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
 			path = os.path.join(app.config['UPLOAD_FOLDER'], filename) 
 			file.save(path)
-			output = subprocess.check_output(["python", "script.py", path])
-			output = output.decode()
+			try:
+				output = subprocess.check_output(["python", "script.py", path])
+				output = output.decode()
+			except subprocess.CalledProcessError as e:
+				flash('Error occurred in application! Contact support team!')
+				return redirect(request.url)
 			return redirect(url_for('download_file', name=filename))
 	return redirect(url_for('index'))
 
