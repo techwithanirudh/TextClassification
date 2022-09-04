@@ -1,5 +1,6 @@
 import sys
 import shutil
+import time
 
 path = sys.argv[1]
 
@@ -8,3 +9,4 @@ path = sys.argv[1]
 
 # If you modified the CSV file in uploads uncomment this line
 shutil.copy(path, 'results/')
+time.sleep(10)

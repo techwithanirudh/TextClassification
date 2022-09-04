@@ -13,6 +13,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['DOWNLOAD_FOLDER'] = DOWNLOAD_FOLDER
 app.config['SECRET_KEY'] = SECRET_KEY
 
+status = {}
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -34,7 +36,7 @@ def upload_file():
 			flash('No file part')
 			return redirect(request.url)
 		file = request.files['file']
-		# If the user does not select a file, the browser submits an
+        # If the user does not select a file, the browser submits an
 		# empty file without a filename.
 		if file.filename == '':
 			flash('No selected file')
@@ -46,14 +48,41 @@ def upload_file():
 			filename = secure_filename(file.filename)
 			path = os.path.join(app.config['UPLOAD_FOLDER'], filename) 
 			file.save(path)
-			try:
-				output = subprocess.check_output(["python", "script.py", path])
-				output = output.decode()
-			except subprocess.CalledProcessError as e:
-				flash('Error occurred in application! Contact support team!')
-				return redirect(request.url)
+
+			steps = ['Step 1: Running Text Classification', 'Step 1: Completed Text Classification', 'Step 2: Running Clustering', 'Step 2: Completed Clustering', 'Step 3: IDK', 'Step 3: Completed IDK']
+
+			for i in range(len(steps)):
+				if (i % 2) == 0:
+					# Get the previous odd step
+					prev_step = str(i-1)
+					if int(prev_step) > 0:
+						status[filename] = steps[i]
+                    	# Run the previous odd step file
+						try:	
+							print(["python", prev_step + ".py", path])
+							output = subprocess.check_output(["python", prev_step + ".py", path])
+							output = output.decode()
+							print(output)
+            	            # Update the status
+							status[filename] = steps[i + 1]
+						except subprocess.CalledProcessError as e:
+							flash('Error occurred in application! Contact support team!')
+							return redirect(request.url)
+                        
 			return redirect(url_for('download_file', name=filename))
 	return redirect(url_for('index'))
+
+@app.route("/stream")
+def stream():
+	filename = 'Classnotes_Buddy2_1.csv'
+	
+	def generate():
+		if filename in status:
+			yield "{}\n".format(status[filename])
+		else:
+			yield "{}\n".format('404')
+
+	return app.response_class(generate(), mimetype="text/plain")
 
 @app.route('/uploads/<name>')
 def download_file(name):
