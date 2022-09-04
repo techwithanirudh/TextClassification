@@ -49,21 +49,18 @@ def upload_file():
 			path = os.path.join(app.config['UPLOAD_FOLDER'], filename) 
 			file.save(path)
 
-			steps = ['Step 1: Running Text Classification', 'Step 2: Running Clustering', 'Step 2: Completed Clustering', 'Step 3: IDK', 'Step 3: Completed IDK']
+			steps = ['Step 1: Running Text Classification', 'Step 2: Running Clustering',  'Step 3: IDK']
 
 			step_index = 0
 			
-			for i in range(0, 3):
+			for i in range(1, 4):
 						try:	
 							
-							status[filename] = steps[step_index]
-							print(["python", str(i + 1) + ".py", path])
-							output = subprocess.check_output(["python", str(i + 1) + ".py", path])
+							status[filename] = steps[i - 1]
+							print(["python", str(i) + ".py", path])
+							output = subprocess.check_output(["python", str(i) + ".py", path])
 							output = output.decode()
 							print(output)
-            	            # Update the status
-							status[filename] = steps[step_index + 1]
-							step_index += 2
 						except subprocess.CalledProcessError as e:
 							flash('Error occurred in application! Contact support team!')
 							return redirect(request.url)
