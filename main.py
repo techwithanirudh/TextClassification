@@ -49,22 +49,21 @@ def upload_file():
 			path = os.path.join(app.config['UPLOAD_FOLDER'], filename) 
 			file.save(path)
 
-			steps = ['Step 1: Running Text Classification', 'Step 1: Completed Text Classification', 'Step 2: Running Clustering', 'Step 2: Completed Clustering', 'Step 3: IDK', 'Step 3: Completed IDK']
+			steps = ['Step 1: Running Text Classification', 'Step 2: Running Clustering', 'Step 2: Completed Clustering', 'Step 3: IDK', 'Step 3: Completed IDK']
 
-			for i in range(len(steps)):
-				if (i % 2) == 0:
-					# Get the previous odd step
-					prev_step = str(i-1)
-					if int(prev_step) > 0:
-						status[filename] = steps[i]
-                    	# Run the previous odd step file
+			step_index = 0
+			
+			for i in range(0, 3):
 						try:	
-							print(["python", prev_step + ".py", path])
-							output = subprocess.check_output(["python", prev_step + ".py", path])
+							
+							status[filename] = steps[step_index]
+							print(["python", str(i + 1) + ".py", path])
+							output = subprocess.check_output(["python", str(i + 1) + ".py", path])
 							output = output.decode()
 							print(output)
             	            # Update the status
-							status[filename] = steps[i + 1]
+							status[filename] = steps[step_index + 1]
+							step_index += 2
 						except subprocess.CalledProcessError as e:
 							flash('Error occurred in application! Contact support team!')
 							return redirect(request.url)
@@ -74,13 +73,14 @@ def upload_file():
 
 @app.route("/stream")
 def stream():
-	filename = 'Classnotes_Buddy2_1.csv'
+	filename = secure_filename(request.args['filename'])
+	print(filename)
 	
 	def generate():
 		if filename in status:
 			yield "{}\n".format(status[filename])
 		else:
-			yield "{}\n".format('404')
+			yield "{}\n".format('File not found')
 
 	return app.response_class(generate(), mimetype="text/plain")
 

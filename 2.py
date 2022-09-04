@@ -8,5 +8,5 @@ path = sys.argv[1]
 # Modify the source file or the file in the results directory
 
 # If you modified the CSV file in uploads uncomment this line
-shutil.copy(path, 'results/')
+# shutil.copy(path, 'results/')
 time.sleep(10)
